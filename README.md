@@ -2,7 +2,7 @@
 
 A minimal PWA for tracking progress through an ethical hacking study plan. Runs offline, installs on Android, saves progress locally per device.
 
-**Live:** https://your-username.github.io/hacktracker
+**Live:** ://mnfmofficial.github.io/Ethical-Hacker-Foundation-Tracker/
 
 ---
 
