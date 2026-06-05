@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#1a1a1a" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="apple-mobile-web-app-title" content="HackTracker" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <title>HackTracker</title>
+  <style>
+    :root {
+      --bg:       #111111;
+      --surface:  #1c1c1c;
+      --surface2: #242424;
+      --border:   #2e2e2e;
+      --accent:   #c8a96e;
+      --accent2:  #7eb8c8;
+      --green:    #6abf7a;
+      --red:      #c86a6a;
+      --text:     #d4d4d4;
+      --muted:    #666;
+      --faint:    #333;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+    body {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      padding-bottom: 72px;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .topbar-title {
+      font-size: 1em;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-family: 'Courier New', monospace;
+    }
+    .streak-pill {
+      font-family: 'Courier New', monospace;
+      font-size: 0.8em;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 4px 10px;
+      border-radius: 3px;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── INSTALL BANNER ── */
+    #install-banner {
+      display: none;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.8em;
+      font-family: 'Courier New', monospace;
+      color: var(--muted);
+    }
+    #install-banner.show { display: flex; }
+    #install-banner span { flex: 1; }
+    #install-banner button {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 5px 12px;
+      font-size: 0.8em;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      border-radius: 2px;
+    }
+    #install-banner .dismiss {
+      border: none; color: var(--muted); font-size: 1em; padding: 2px 6px;
+    }
+
+    /* ── CONTENT ── */
+    .content { padding: 20px; max-width: 560px; margin: 0 auto; }
+
+    /* ── STATS ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .stat {
+      background: var(--surface);
+      padding: 14px 8px;
+      text-align: center;
+    }
+    .stat-val {
+      font-family: 'Courier New', monospace;
+      font-size: 1.6em;
+      color: var(--accent);
+      display: block;
+    }
+    .stat-label {
+      font-size: 0.65em;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: 4px;
+      display: block;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* ── PROGRESS ── */
+    .progress-section {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      padding: 16px 18px;
+      margin-bottom: 24px;
+    }
+    .progress-label {
+      font-family: 'Courier New', monospace;
+      font-size: 0.75em;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .progress-label span { color: var(--accent); }
+    .bar-outer {
+      background: var(--faint);
+      height: 6px;
+    }
+    .bar-inner {
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.4s ease;
+    }
+
+    /* ── RULE ── */
+    .rule-box {
+      border-left: 3px solid var(--accent);
+      padding: 12px 16px;
+      background: var(--surface);
+      margin-bottom: 24px;
+      font-size: 0.82em;
+      line-height: 1.7;
+      color: var(--muted);
+      font-family: 'Courier New', monospace;
+    }
+    .rule-box strong { color: var(--text); }
+
+    /* ── MODULE ── */
+    .module {
+      border: 1px solid var(--border);
+      margin-bottom: 12px;
+      background: var(--surface);
+    }
+    .module-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 16px;
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 1px solid transparent;
+    }
+    .module.open .module-header {
+      border-bottom-color: var(--border);
+    }
+    .module-header:active { background: var(--surface2); }
+
+    .mod-left { display: flex; align-items: center; gap: 10px; }
+    .mod-icon { font-size: 1em; }
+    .mod-name {
+      font-size: 0.85em;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text);
+      font-family: 'Courier New', monospace;
+    }
+    .mod-right { display: flex; align-items: center; gap: 14px; }
+    .mod-count {
+      font-family: 'Courier New', monospace;
+      font-size: 0.75em;
+      color: var(--muted);
+    }
+    .mod-chevron {
+      font-size: 0.7em;
+      color: var(--muted);
+      transition: transform 0.25s;
+      font-family: 'Courier New', monospace;
+    }
+    .module.open .mod-chevron { transform: rotate(180deg); }
+
+    .mod-bar-outer { height: 2px; background: var(--faint); }
+    .mod-bar-inner { height: 100%; background: var(--accent2); transition: width 0.35s; }
+
+    /* ── TASKS ── */
+    .task-list { display: none; }
+    .module.open .task-list { display: block; }
+
+    .task {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 12px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+    .task:last-child { border-bottom: none; }
+    .task:active { background: var(--surface2); }
+    .task.done { opacity: 0.4; }
+    .task.done .task-text { text-decoration: line-through; }
+
+    .cb {
+      width: 16px; height: 16px;
+      border: 1px solid var(--faint);
+      flex-shrink: 0;
+      margin-top: 3px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .task.done .cb {
+      background: var(--green);
+      border-color: var(--green);
+    }
+    .task.done .cb::after {
+      content: '✓';
+      color: var(--bg);
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .task-body { flex: 1; }
+    .task-text { font-size: 0.83em; line-height: 1.55; color: var(--text); }
+    .task-meta {
+      font-family: 'Courier New', monospace;
+      font-size: 0.68em;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    /* ── BOTTOM BAR ── */
+    .bottom-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding: 10px 20px;
+      display: flex; gap: 10px;
+      max-width: 560px; margin: 0 auto;
+    }
+    .btn {
+      flex: 1; padding: 11px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.8em;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:active { background: var(--surface2); }
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+      font-weight: 700;
+    }
+    .btn-primary:active { opacity: 0.85; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; top: 60px; left: 50%;
+      transform: translateX(-50%) translateY(-10px);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 2px;
+      padding: 10px 18px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.8em;
+      z-index: 999;
+      opacity: 0;
+      transition: all 0.25s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── FOOTER ── */
+    .footer-note {
+      border-top: 1px solid var(--border);
+      padding: 14px 0 4px;
+      margin-top: 8px;
+      font-size: 0.73em;
+      color: var(--muted);
+      font-family: 'Courier New', monospace;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-title">HackTracker</div>
+  <div class="streak-pill">streak: <span id="s-streak">0</span>d</div>
+</div>
+
+<div id="install-banner">
+  <span>Install as offline app</span>
+  <button id="install-btn">Install</button>
+  <button class="dismiss" id="dismiss-install">✕</button>
+</div>
+
+<div class="content">
+
+  <div class="stats-row">
+    <div class="stat">
+      <span class="stat-val" id="s-streak2">0</span>
+      <span class="stat-label">Streak</span>
+    </div>
+    <div class="stat">
+      <span class="stat-val" id="s-done">0</span>
+      <span class="stat-label">Done</span>
+    </div>
+    <div class="stat">
+      <span class="stat-val" id="s-pct">0%</span>
+      <span class="stat-label">Total</span>
+    </div>
+    <div class="stat">
+      <span class="stat-val" id="s-days">0</span>
+      <span class="stat-label">Days</span>
+    </div>
+  </div>
+
+  <div class="progress-section">
+    <div class="progress-label">
+      Foundation Progress
+      <span id="overall-pct">0%</span>
+    </div>
+    <div class="bar-outer">
+      <div class="bar-inner" id="overall-bar" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="rule-box">
+    <strong>Daily rule —</strong> complete at least one task per module,
+    then tap <em>Complete Day</em> to log your streak.
+  </div>
+
+  <div id="modules-container"></div>
+
+  <div class="footer-note">
+    Progress is stored locally on this device.<br>
+    Clearing browser data will reset all progress.
+  </div>
+
+</div>
+
+<div class="bottom-bar">
+  <button class="btn btn-primary" id="complete-day-btn">Complete Day</button>
+  <button class="btn" id="reset-btn">Reset</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const MODULES = [
+  {
+    id: 'networking', icon: '⬡', name: 'Networking',
+    tasks: [
+      { text: 'OSI model — all 7 layers', time: '30 min' },
+      { text: 'Subnetting — calculate 5 networks', time: '20 min' },
+      { text: 'Traffic capture in Wireshark', time: '30 min' },
+      { text: 'TCP 3-way handshake', time: '20 min' },
+      { text: 'HTTP vs HTTPS internals', time: '25 min' },
+      { text: 'nmap scan on local network', time: '30 min' },
+      { text: 'DNS queries with dig/nslookup', time: '20 min' },
+      { text: 'Common ports: 80 443 22 21 3306', time: '15 min' },
+      { text: 'tcpdump — capture and filter', time: '25 min' },
+      { text: 'Networking CTF on TryHackMe', time: '30 min' },
+    ]
+  },
+  {
+    id: 'programming', icon: '⬡', name: 'Programming',
+    tasks: [
+      { text: 'Python — variables, loops, functions', time: '30 min' },
+      { text: 'Python port scanner script', time: '40 min' },
+      { text: 'requests library for HTTP', time: '25 min' },
+      { text: 'JavaScript DOM manipulation', time: '30 min' },
+      { text: 'Bash automation script', time: '30 min' },
+      { text: 'SQL — SELECT WHERE JOIN', time: '25 min' },
+      { text: 'Python file read/write', time: '20 min' },
+      { text: 'Regular expressions practice', time: '30 min' },
+      { text: 'Web scraper with BeautifulSoup', time: '40 min' },
+      { text: '3 Python challenges on HackerRank', time: '30 min' },
+    ]
+  },
+  {
+    id: 'linux', icon: '⬡', name: 'Linux',
+    tasks: [
+      { text: 'Install Kali Linux in VirtualBox', time: '45 min' },
+      { text: 'Basic commands — ls cd cp mv rm', time: '20 min' },
+      { text: 'File permissions — chmod chown', time: '25 min' },
+      { text: 'Process management — ps top kill', time: '20 min' },
+      { text: 'Search — grep find locate', time: '25 min' },
+      { text: 'User management — adduser sudo', time: '20 min' },
+      { text: 'Network — ifconfig netstat ss', time: '25 min' },
+      { text: 'Package management — apt dpkg', time: '20 min' },
+      { text: 'Bash script with loops and conditions', time: '30 min' },
+      { text: 'Linux basics room on TryHackMe', time: '40 min' },
+    ]
+  },
+  {
+    id: 'security', icon: '⬡', name: 'Security',
+    tasks: [
+      { text: 'OWASP Top 10 overview', time: '30 min' },
+      { text: 'Symmetric vs asymmetric encryption', time: '25 min' },
+      { text: 'Hashing — MD5 SHA bcrypt', time: '20 min' },
+      { text: 'SQL injection on DVWA', time: '35 min' },
+      { text: 'Burp Suite Community setup', time: '30 min' },
+      { text: 'XSS — study and reproduce', time: '25 min' },
+      { text: 'Metasploit — first exploit', time: '40 min' },
+      { text: 'Authentication vs authorisation', time: '20 min' },
+      { text: 'Read 3 reports on HackerOne', time: '25 min' },
+      { text: 'Beginner CTF challenge', time: '45 min' },
+    ]
+  }
+];
+
+const TOTAL = MODULES.reduce((s, m) => s + m.tasks.length, 0);
+
+function defaultState() {
+  const modules = {};
+  MODULES.forEach(m => { modules[m.id] = Array(m.tasks.length).fill(false); });
+  return { streak: 0, lastDate: null, totalDays: 0, modules };
+}
+
+let state = (() => {
+  try {
+    const s = localStorage.getItem('ht_v3');
+    return s ? JSON.parse(s) : defaultState();
+  } catch { return defaultState(); }
+})();
+
+function save() { localStorage.setItem('ht_v3', JSON.stringify(state)); }
+
+// streak validity check
+(function() {
+  if (!state.lastDate) return;
+  const diff = Math.round((new Date(new Date().toDateString()) - new Date(state.lastDate)) / 86400000);
+  if (diff > 1) { state.streak = 0; save(); }
+})();
+
+function render() {
+  const c = document.getElementById('modules-container');
+  c.innerHTML = '';
+  MODULES.forEach(mod => {
+    const done = state.modules[mod.id].filter(Boolean).length;
+    const pct  = Math.round(done / mod.tasks.length * 100);
+    const open = mod.id === (window._open ?? MODULES[0].id);
+    const el   = document.createElement('div');
+    el.className = 'module' + (open ? ' open' : '');
+    el.innerHTML = `
+      <div class="module-header">
+        <div class="mod-left">
+          <span class="mod-icon">${mod.icon}</span>
+          <span class="mod-name">${mod.name}</span>
+        </div>
+        <div class="mod-right">
+          <span class="mod-count">${done}/${mod.tasks.length}</span>
+          <span class="mod-chevron">▾</span>
+        </div>
+      </div>
+      <div class="mod-bar-outer">
+        <div class="mod-bar-inner" style="width:${pct}%"></div>
+      </div>
+      <ul class="task-list">
+        ${mod.tasks.map((t, i) => `
+          <li class="task${state.modules[mod.id][i] ? ' done' : ''}"
+              data-mod="${mod.id}" data-idx="${i}">
+            <div class="cb"></div>
+            <div class="task-body">
+              <div class="task-text">${t.text}</div>
+              <div class="task-meta">${t.time}</div>
+            </div>
+          </li>`).join('')}
+      </ul>`;
+
+    el.querySelector('.module-header').addEventListener('click', () => {
+      window._open = open ? null : mod.id;
+      render();
+    });
+
+    el.querySelectorAll('.task').forEach(li => {
+      li.addEventListener('click', e => {
+        e.stopPropagation();
+        const i = parseInt(li.dataset.idx);
+        const m = li.dataset.mod;
+        state.modules[m][i] = !state.modules[m][i];
+        save(); updateStats();
+        li.classList.toggle('done', state.modules[m][i]);
+        el.querySelector('.mod-count').textContent =
+          `${state.modules[m].filter(Boolean).length}/${mod.tasks.length}`;
+        const d2 = state.modules[m].filter(Boolean).length;
+        el.querySelector('.mod-bar-inner').style.width =
+          Math.round(d2 / mod.tasks.length * 100) + '%';
+      });
+    });
+
+    c.appendChild(el);
+  });
+  updateStats();
+}
+
+function updateStats() {
+  const done = MODULES.reduce((s, m) => s + state.modules[m.id].filter(Boolean).length, 0);
+  const pct  = Math.round(done / TOTAL * 100);
+  ['s-streak','s-streak2'].forEach(id => document.getElementById(id).textContent = state.streak);
+  document.getElementById('s-done').textContent  = done;
+  document.getElementById('s-pct').textContent   = pct + '%';
+  document.getElementById('s-days').textContent  = state.totalDays;
+  document.getElementById('overall-bar').style.width = pct + '%';
+  document.getElementById('overall-pct').textContent  = pct + '%';
+}
+
+document.getElementById('complete-day-btn').addEventListener('click', () => {
+  const allStarted = MODULES.every(m => state.modules[m.id].some(Boolean));
+  if (!allStarted) { toast('complete at least one task per module'); return; }
+  const today = new Date().toDateString();
+  if (state.lastDate === today) { toast('already logged today'); return; }
+  const last = state.lastDate ? new Date(state.lastDate) : null;
+  const diff = last ? Math.round((new Date(today) - last) / 86400000) : 0;
+  state.streak   = (!last || diff === 1) ? state.streak + 1 : 1;
+  state.totalDays++;
+  state.lastDate = today;
+  save(); updateStats();
+  toast(`day logged — streak: ${state.streak}`);
+});
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if (!confirm('Reset all progress?')) return;
+  state = defaultState();
+  window._open = MODULES[0].id;
+  save(); render();
+  toast('reset');
+});
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredPrompt = e;
+  if (!localStorage.getItem('ht_install_dismissed'))
+    document.getElementById('install-banner').classList.add('show');
+});
+document.getElementById('install-btn').addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('install-banner').classList.remove('show');
+});
+document.getElementById('dismiss-install').addEventListener('click', () => {
+  document.getElementById('install-banner').classList.remove('show');
+  localStorage.setItem('ht_install_dismissed', '1');
+});
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
+
+window._open = MODULES[0].id;
+render();
+</script>
+</body>
+</html>
