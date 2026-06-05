@@ -1,6 +1,6 @@
 # HackTracker
 
-A minimal PWA for tracking progress through an ethical hacking study plan. Runs offline, installs on Android, saves progress locally per device.
+A minimal PWA for tracking progress through an ethical hacking study plan. Runs offline, installs on Android, saves progress locally per device. This website aims to serve a complete beginner who is ery new to cyber security.
 
 **Live:** ://mnfmofficial.github.io/Ethical-Hacker-Foundation-Tracker/
 
